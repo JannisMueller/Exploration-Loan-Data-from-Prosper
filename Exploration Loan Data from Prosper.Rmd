@@ -40,33 +40,79 @@ loan_data = pd.read_csv(io.StringIO(response.decode('utf-8')))
 ```
 
 ```{python}
-# checking if upload was complete
+# high-level overview of data shape and composition
 print(loan_data.shape)
-loan_data.head()
+print(loan_data.dtypes)
+print(loan_data.head(10))
 ```
 
 ### What is the structure of your dataset?
 
-> Your answer here!
+The Data set contains 113,937 loans (rows) with 81 variables (columns) on each loan. Most variables are integers (numeric) or strings (objects). But the dataset also has some categorical variables: for example CreditGrade, ProsperRating, EmploymentStatus, LoanStatus, ProsperScore
+
+(worst) ——> (best)
 
 ### What is/are the main feature(s) of interest in your dataset?
 
-> Your answer here!
+The huge dataset with a lot of informaton (81 variables) allows me to have deeper look at the question what factors affect a loan’s outcome status (Cancelled, Chargedoff, Completed, Current, Defaulted, FinalPaymentInProgress, PastDue)?
+
+This is a very critical question for banks and loan companies in order to minimize the default risk and and to set the right interest rate (including setting a proper risk premium).
+
+This investigation might help to find out what factors predict the outcome of a loan best. 
+  
+
+
 
 ### What features in the dataset do you think will help support your investigation into your feature(s) of interest?
 
-> Your answer here!
+I think the factors that have the most influence on predicting the outcome of a loan are:
 
+ - Term (The length of the loan expressed in months)
+ - ProsperScore (custom risk score)
+ - EmploymentStatus (The employment status of the borrower)
+ - StatedMonthlyIncome # maybe engineer variable payment/income
+ - IncomeRange
+ - BorrowerAPR
+ - BorrowerRate
+ - IsBorrowerHomeowner
+ - ListingCategory (the category of the listing that the borrower selected when posting their listing)
+ - OpenCreditLines (Number of open credit line)
+ - TotalProsperPaymentsBilled (number of on time payments the borrower made on Prosper loans at the time they created this listing)
+ - ProsperPaymentsOneMonthPlusLate (Number of payments the borrower made on Prosper loans that were greater than one month late)
+ - LoanOriginalAmount (The origination amount of the loan)
+ - MonthlyLoanPayment (The scheduled monthly loan payment) # maybe engineer variable payment/income
+ 
+ 
+ 
+#### Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled` , `BorrowerRate` (high interest rate are associated with higher default risk) and the ratio of monthly income and monthly loan payment  (*StatedMonthlyIncome/MonthlyLoanPayment*) have  the strongest effect on the loan's outcome status.
+
+
+In the first step I will create a copy of the dataset (, drop the columns I dont need) and create a new variable called ratio_income_loanPayment (ratio of monthly income and monthly loan payment)
+
+```{python}
+# create a copy of the dataset
+loan_data_clean = loan_data.copy()
+# drop all variables that are not needed in the investigation to see how many observations I have left after 
+#loan_data_clean = loan_data_clean.drop[[]] # really necceassry??
+# in the first step I create a new variable ratio_income_loanPayment
+loan_data_clean['ratio_income_loanPayment'] = loan_data_clean.StatedMonthlyIncome / loan_data_clean.MonthlyLoanPayment
+print(loan_data_clean['ratio_income_loanPayment'].sample(3))
+print(loan_data_clean['ratio_income_loanPayment'].describe())
+```
 
 ## Univariate Exploration
+
+I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate and ratio_income_loanPayment
+
+
 
 > In this section, investigate distributions of individual variables. If
 you see unusual points or outliers, take a deeper look to clean things up
 and prepare yourself to look at relationships between variables.
 
-```{python}
 
-```
+
+
 
 > Make sure that, after every plot or related series of plots, that you
 include a Markdown cell with comments about what you observed, and what
