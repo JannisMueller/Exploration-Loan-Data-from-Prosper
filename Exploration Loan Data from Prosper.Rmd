@@ -17,7 +17,7 @@ jupyter:
 
 ## Preliminary Wrangling
 
-> This data set contains 113,937 loans with 81 variables on each loan, including loan amount, borrower rate (or interest rate), current loan status, borrower income, and many others
+This data set contains 113,937 loans with 81 variables on each loan, including loan amount, borrower rate (or interest rate), current loan status, borrower income, and many others
 
 ```{python}
 # import all packages and set plots to be embedded inline
@@ -36,23 +36,22 @@ import io
 url = 'https://s3.amazonaws.com/udacity-hosted-downloads/ud651/prosperLoanData.csv'
 response = requests.get(url).content
 loan_data = pd.read_csv(io.StringIO(response.decode('utf-8')))
-
+loan_data.head()
 ```
 
 ```{python}
 # high-level overview of data shape and composition
 print(loan_data.shape)
 print(loan_data.dtypes)
-print(loan_data.head(10))
 ```
 
-### What is the structure of your dataset?
+### The structure of the dataset
 
 The Data set contains 113,937 loans (rows) with 81 variables (columns) on each loan. Most variables are integers (numeric) or strings (objects). But the dataset also has some categorical variables: for example CreditGrade, ProsperRating, EmploymentStatus, LoanStatus, ProsperScore
 
 (worst) ——> (best)
 
-### What is/are the main feature(s) of interest in your dataset?
+### Main features of interest in the dataset
 
 The huge dataset with a lot of informaton (81 variables) allows me to have deeper look at the question what factors affect a loan’s outcome status (Cancelled, Chargedoff, Completed, Current, Defaulted, FinalPaymentInProgress, PastDue)?
 
@@ -63,31 +62,32 @@ This investigation might help to find out what factors predict the outcome of a 
 
 
 
-### What features in the dataset do you think will help support your investigation into your feature(s) of interest?
+### Features in the dataset that will help support the investigation
 
 I think the factors that have the most influence on predicting the outcome of a loan are:
 
  - Term (The length of the loan expressed in months)
  - ProsperScore (custom risk score)
  - EmploymentStatus (The employment status of the borrower)
- - StatedMonthlyIncome # maybe engineer variable payment/income
+ - StatedMonthlyIncome & MonthlyLoanPayment
  - IncomeRange
  - BorrowerAPR
  - BorrowerRate
- - IsBorrowerHomeowner
- - ListingCategory (the category of the listing that the borrower selected when posting their listing)
+ - LoanOriginalAmount
  - OpenCreditLines (Number of open credit line)
  - TotalProsperPaymentsBilled (number of on time payments the borrower made on Prosper loans at the time they created this listing)
- - ProsperPaymentsOneMonthPlusLate (Number of payments the borrower made on Prosper loans that were greater than one month late)
- - LoanOriginalAmount (The origination amount of the loan)
- - MonthlyLoanPayment (The scheduled monthly loan payment) # maybe engineer variable payment/income
- 
- 
- 
-#### Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled` , `BorrowerRate` (high interest rate are associated with higher default risk) and the ratio of monthly income and monthly loan payment  (*StatedMonthlyIncome/MonthlyLoanPayment*) have  the strongest effect on the loan's outcome status.
 
 
-In the first step I will create a copy of the dataset (, drop the columns I dont need) and create a new variable called ratio_income_loanPayment (ratio of monthly income and monthly loan payment)
+#### Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and the ratio of monthly income and monthly loan payment  (*StatedMonthlyIncome/MonthlyLoanPayment*) have  the strongest effect on the loan's outcome status.
+ 
+
+
+In the first step I will create a copy of the dataset and create a new variable called ratio_income_loanPayment (ratio of monthly income and monthly loan payment)
+
+```{python}
+print(loan_data_clean.StatedMonthlyIncome.head())
+print(loan_data_clean.MonthlyLoanPayment.head())
+```
 
 ```{python}
 # create a copy of the dataset
@@ -95,7 +95,9 @@ loan_data_clean = loan_data.copy()
 # drop all variables that are not needed in the investigation to see how many observations I have left after 
 #loan_data_clean = loan_data_clean.drop[[]] # really necceassry??
 # in the first step I create a new variable ratio_income_loanPayment
-loan_data_clean['ratio_income_loanPayment'] = loan_data_clean.StatedMonthlyIncome / loan_data_clean.MonthlyLoanPayment
+loan_data_clean['ratio_income_loanPayment'] = (loan_data_clean.MonthlyLoanPayment / loan_data_clean.StatedMonthlyIncome)*100
+# round the ratio to 2 decimals
+loan_data_clean['ratio_income_loanPayment'] = loan_data_clean['ratio_income_loanPayment'].round(2)
 print(loan_data_clean['ratio_income_loanPayment'].sample(3))
 print(loan_data_clean['ratio_income_loanPayment'].describe())
 ```
@@ -119,7 +121,27 @@ include a Markdown cell with comments about what you observed, and what
 you plan on investigating next.
 
 ```{python}
+# Histogramm Prosper Score
+binsize = 0.5
+bins = np.arange(1, loan_data.ProsperScore.max()+binsize, binsize)
 
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'ProsperScore', bins = bins)
+plt.xlabel('Prosper Score')
+plt.ylabel('Count')
+plt.show()
+```
+
+```{python}
+# Histogramm TotalProsperPaymentsBilled (Number of on time payments)
+binsize = 2
+bins = np.arange(loan_data.TotalProsperPaymentsBilled.min(), loan_data.TotalProsperPaymentsBilled.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'TotalProsperPaymentsBilled', bins = bins)
+plt.xlabel('Number of on time payments')
+plt.ylabel('Count')
+plt.show()
 ```
 
 ### Discuss the distribution(s) of your variable(s) of interest. Were there any unusual points? Did you need to perform any transformations?
