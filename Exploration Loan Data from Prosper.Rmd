@@ -78,28 +78,20 @@ I think the factors that have the most influence on predicting the outcome of a 
  - TotalProsperPaymentsBilled (number of on time payments the borrower made on Prosper loans at the time they created this listing)
 
 
-#### Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and the ratio of monthly income and monthly loan payment  (*StatedMonthlyIncome/MonthlyLoanPayment*) have  the strongest effect on the loan's outcome status.
+Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and `monthly income` and `monthly loan payment`  have  the strongest effect on the loan's outcome status.
  
 
 
-In the first step I will create a copy of the dataset and create a new variable called ratio_income_loanPayment (ratio of monthly income and monthly loan payment)
-
-```{python}
-print(loan_data_clean.StatedMonthlyIncome.head())
-print(loan_data_clean.MonthlyLoanPayment.head())
-```
+In the first step I will create a copy of the dataset with the variables of interest
 
 ```{python}
 # create a copy of the dataset
 loan_data_clean = loan_data.copy()
-# drop all variables that are not needed in the investigation to see how many observations I have left after 
-#loan_data_clean = loan_data_clean.drop[[]] # really necceassry??
-# in the first step I create a new variable ratio_income_loanPayment
-loan_data_clean['ratio_income_loanPayment'] = (loan_data_clean.MonthlyLoanPayment / loan_data_clean.StatedMonthlyIncome)*100
-# round the ratio to 2 decimals
-loan_data_clean['ratio_income_loanPayment'] = loan_data_clean['ratio_income_loanPayment'].round(2)
-print(loan_data_clean['ratio_income_loanPayment'].sample(3))
-print(loan_data_clean['ratio_income_loanPayment'].describe())
+# include all variables that are needed in the investigation in the clean copy
+loan_data_clean = loan_data_clean[['Term','ProsperScore','EmploymentStatus','StatedMonthlyIncome', 'MonthlyLoanPayment', 'IncomeRange','BorrowerAPR','BorrowerRate','LoanOriginalAmount', 'OpenCreditLines','TotalProsperPaymentsBilled']]
+#getting a overview over the new dataset
+print(loan_data_clean.head())
+print(loan_data_clean.info())
 ```
 
 ## Univariate Exploration
@@ -123,7 +115,7 @@ you plan on investigating next.
 ```{python}
 # Histogramm Prosper Score
 binsize = 0.5
-bins = np.arange(1, loan_data.ProsperScore.max()+binsize, binsize)
+bins = np.arange(1, loan_data_clean.ProsperScore.max()+binsize, binsize)
 
 plt.figure(figsize=[8, 5])
 plt.hist(data = loan_data_clean, x = 'ProsperScore', bins = bins)
@@ -134,12 +126,44 @@ plt.show()
 
 ```{python}
 # Histogramm TotalProsperPaymentsBilled (Number of on time payments)
-binsize = 2
-bins = np.arange(loan_data.TotalProsperPaymentsBilled.min(), loan_data.TotalProsperPaymentsBilled.max()+binsize, binsize)
+binsize = 1
+bins = np.arange(loan_data_clean.TotalProsperPaymentsBilled.min(), loan_data_clean.TotalProsperPaymentsBilled.max()+binsize, binsize)
 
 plt.figure(figsize=[8, 5])
 plt.hist(data = loan_data_clean, x = 'TotalProsperPaymentsBilled', bins = bins)
 plt.xlabel('Number of on time payments')
+plt.ylabel('Count')
+plt.show()
+```
+
+```{python}
+loan_data_clean.StatedMonthlyIncome.describe()
+```
+
+```{python}
+# Histogramm  StatedMonthlyIncome 
+binsize = 1
+bins = np.arange(loan_data_clean.StatedMonthlyIncome.min(), loan_data_clean.StatedMonthlyIncome.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'StatedMonthlyIncome', bins = bins)
+plt.xlabel('Monthly Income')
+plt.ylabel('Count')
+plt.show()
+```
+
+```{python}
+loan_data.BorrowerRate.describe()
+```
+
+```{python}
+# Histogramm  BorrowerRate (Borrower's interest rate for this loan.)
+binsize = 0.01
+bins = np.arange(loan_data.BorrowerRate.min(), loan_data.BorrowerRate.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'BorrowerRate', bins = bins)
+plt.xlabel('Interest Rate')
 plt.ylabel('Count')
 plt.show()
 ```
@@ -197,6 +221,29 @@ track of where the exported file goes, so you can put it in the same folder
 as this notebook for project submission. Also, make sure you remove all of
 the quote-formatted guide notes like this one before you finish your report!
 
-```{python}
 
+### Engineering a new variable
+
+```{python}
+print(loan_data_clean.StatedMonthlyIncome.head())
+print(loan_data_clean.MonthlyLoanPayment.head())
+```
+
+```{python}
+# in the first step I create a new variable ratio_income_loanPayment
+loan_data_clean['ratio_income_loanPayment'] = (loan_data_clean.MonthlyLoanPayment / loan_data_clean.StatedMonthlyIncome)*100
+# round the ratio to 2 decimals
+loan_data_clean['ratio_income_loanPayment'] = loan_data_clean['ratio_income_loanPayment'].round(2)
+print(loan_data_clean['ratio_income_loanPayment'].sample(3))
+print(loan_data_clean['ratio_income_loanPayment'].describe())
+```
+
+One can see from the statisitcs that there are null values and values generate by dividing by zero
+
+```{python}
+loan_data_clean.StatedMonthlyIncome.value_counts().head(20)
+```
+
+```{python}
+loan_data_clean.MonthlyLoanPayment.value_counts().head(20)
 ```
