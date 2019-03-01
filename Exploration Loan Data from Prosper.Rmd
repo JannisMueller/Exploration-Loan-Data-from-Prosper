@@ -96,7 +96,7 @@ print(loan_data_clean.info())
 
 ## Univariate Exploration
 
-I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate and ratio_income_loanPayment
+I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate, StatedMonthlyIncome and MonthlyLoanPayment.
 
 
 
@@ -166,6 +166,32 @@ plt.hist(data = loan_data_clean, x = 'BorrowerRate', bins = bins)
 plt.xlabel('Interest Rate')
 plt.ylabel('Count')
 plt.show()
+```
+
+Now I also will plot the remainig factors:
+
+ - Term                          
+ - EmploymentStatus              
+ - IncomeRange                   
+ - BorrowerAPR                                    
+ - OpenCreditLines
+ - LoanOriginalAmount            
+               
+  
+
+```{python}
+fig, ax = plt.subplots(nrows=6, figsize = [8,8])
+d
+efault_color = sb.color_palette()[0]
+sb.countplot(data = loan_data_clean, x = 'Term', color = default_color, ax = ax[0])
+sb.countplot(data = loan_data_clean, x = 'EmploymentStatus', color = default_color, ax = ax[1])
+sb.countplot(data = loan_data_clean, x = 'BorrowerAPR', color = default_color, ax = ax[2])
+sb.countplot(data = loan_data_clean, x = 'IncomeRange', color = default_color, ax = ax[3])
+sb.countplot(data = loan_data_clean, x = 'OpenCreditLines', color = default_color, ax = ax[4])
+sb.countplot(data = loan_data_clean, x = 'LoanOriginalAmount', color = default_color, ax = ax[5])
+
+plt.show()
+
 ```
 
 ### Discuss the distribution(s) of your variable(s) of interest. Were there any unusual points? Did you need to perform any transformations?
