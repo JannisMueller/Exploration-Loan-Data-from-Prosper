@@ -29,13 +29,20 @@ import requests
 import io
 
 # %matplotlib inline
+pd.set_option('display.max_columns', 50)
 ```
 
 ```{python}
-# Loading the dataset
+# Loading the dataset with request libary and saving dataset as CSV file
 url = 'https://s3.amazonaws.com/udacity-hosted-downloads/ud651/prosperLoanData.csv'
 response = requests.get(url).content
-loan_data = pd.read_csv(io.StringIO(response.decode('utf-8')))
+data = pd.read_csv(io.StringIO(response.decode('utf-8')))
+data.to_csv('loan_data.csv')
+```
+
+```{python}
+# creating new data frame called loan_data
+loan_data = pd.read_csv('loan_data.csv')
 loan_data.head()
 ```
 
@@ -69,16 +76,17 @@ I think the factors that have the most influence on predicting the outcome of a 
  - Term (The length of the loan expressed in months)
  - ProsperScore (custom risk score)
  - EmploymentStatus (The employment status of the borrower)
- - StatedMonthlyIncome & MonthlyLoanPayment
+ - MonthlyLoanPayment
  - IncomeRange
  - BorrowerAPR
  - BorrowerRate
  - LoanOriginalAmount
  - OpenCreditLines (Number of open credit line)
  - TotalProsperPaymentsBilled (number of on time payments the borrower made on Prosper loans at the time they created this listing)
+ - Recommendations
 
 
-Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and `monthly income` and `monthly loan payment`  have  the strongest effect on the loan's outcome status.
+Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and `monthly loan payment`  have  the strongest effect on the loan's outcome status.
  
 
 
@@ -88,15 +96,18 @@ In the first step I will create a copy of the dataset with the variables of inte
 # create a copy of the dataset
 loan_data_clean = loan_data.copy()
 # include all variables that are needed in the investigation in the clean copy
-loan_data_clean = loan_data_clean[['Term','ProsperScore','EmploymentStatus','StatedMonthlyIncome', 'MonthlyLoanPayment', 'IncomeRange','BorrowerAPR','BorrowerRate','LoanOriginalAmount', 'OpenCreditLines','TotalProsperPaymentsBilled']]
+loan_data_clean = loan_data_clean[['Term','ProsperScore','EmploymentStatus', 'MonthlyLoanPayment', 'Recommendations','BorrowerAPR','BorrowerRate','LoanOriginalAmount', 'OpenCreditLines','StatedMonthlyIncome','TotalProsperPaymentsBilled', 'IncomeRange']]
 #getting a overview over the new dataset
 print(loan_data_clean.head())
 print(loan_data_clean.info())
 ```
 
+I decided to work with a smaller number of observations since I wasnt able to perform operations in my local notebook
+
+
 ## Univariate Exploration
 
-I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate, StatedMonthlyIncome and MonthlyLoanPayment.
+I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate and IncomeRange.
 
 
 
@@ -137,23 +148,15 @@ plt.show()
 ```
 
 ```{python}
-loan_data_clean.StatedMonthlyIncome.describe()
-```
-
-```{python}
-# Histogramm  StatedMonthlyIncome 
-binsize = 1
-bins = np.arange(loan_data_clean.StatedMonthlyIncome.min(), loan_data_clean.StatedMonthlyIncome.max()+binsize, binsize)
-
-plt.figure(figsize=[8, 5])
-plt.hist(data = loan_data_clean, x = 'StatedMonthlyIncome', bins = bins)
-plt.xlabel('Monthly Income')
-plt.ylabel('Count')
-plt.show()
-```
-
-```{python}
+# getting a first overview over the variable BorrowerRate
 loan_data.BorrowerRate.describe()
+```
+
+```{python}
+sb.countplot(data= loan_data_clean, x= 'IncomeRange', color= base_color, order=loan_data_clean['IncomeRange'].value_counts().index)
+plt.xticks(rotation=25)
+plt.xlabel('Income Range')
+plt.ylabel('Count');
 ```
 
 ```{python}
@@ -172,26 +175,130 @@ Now I also will plot the remainig factors:
 
  - Term                          
  - EmploymentStatus              
- - IncomeRange                   
+ - Recommendations                   
  - BorrowerAPR                                    
  - OpenCreditLines
- - LoanOriginalAmount            
+ - LoanOriginalAmount 
+ - MonthlyLoanPayment
                
   
 
 ```{python}
-fig, ax = plt.subplots(nrows=6, figsize = [8,8])
-d
-efault_color = sb.color_palette()[0]
-sb.countplot(data = loan_data_clean, x = 'Term', color = default_color, ax = ax[0])
-sb.countplot(data = loan_data_clean, x = 'EmploymentStatus', color = default_color, ax = ax[1])
-sb.countplot(data = loan_data_clean, x = 'BorrowerAPR', color = default_color, ax = ax[2])
-sb.countplot(data = loan_data_clean, x = 'IncomeRange', color = default_color, ax = ax[3])
-sb.countplot(data = loan_data_clean, x = 'OpenCreditLines', color = default_color, ax = ax[4])
-sb.countplot(data = loan_data_clean, x = 'LoanOriginalAmount', color = default_color, ax = ax[5])
+# getting a first overview over the variable Term
+loan_data_clean.Term.describe()
+```
 
+```{python}
+# plotting Term (The length of the loan expressed in months)
+binsize = 1
+bins = np.arange(0, loan_data_clean.Term.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'Term', bins = bins)
+plt.xlabel('Loan Terms')
+plt.ylabel('Count')
+plt.xticks([0,10,15,20,25,30,35,40,45,50,55,60,65])
 plt.show()
+```
 
+```{python}
+# getting a first overview over the variable EmploymentStatus
+loan_data_clean.EmploymentStatus.describe()
+```
+
+```{python}
+# plotting EmploymentStatus (The employment status of the borrower at the time they posted the listing) 
+base_color = sb.color_palette()[0]
+sb.countplot(data= loan_data_clean, x= 'EmploymentStatus', color= base_color, order=loan_data_clean['EmploymentStatus'].value_counts().index)
+plt.xticks(rotation=25)
+plt.xlabel('Employment Status')
+plt.ylabel('Count');
+```
+
+```{python}
+# getting a first overview over the variable BorrowerAPR
+loan_data_clean.BorrowerAPR.describe()
+```
+
+```{python}
+# plotting Recommendations(Number of recommendations the borrower had at the time th)
+binsize = 1
+bins = np.arange(0, loan_data_clean.Recommendations.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'Recommendations', bins = bins)
+plt.xlabel('Number of recommendations')
+plt.ylabel('Count')
+plt.xticks([0,1,2,3,4,5,20])
+plt.show()
+```
+
+```{python}
+# getting a first overview over the variable BorrowerAPR
+loan_data_clean.BorrowerAPR.describe()
+```
+
+```{python}
+# Histogramm BorrowerAPR (The Borrower's Annual Percentage Rate (APR) for the loan)
+binsize = 0.001
+bins = np.arange(loan_data.BorrowerAPR.min(), loan_data.BorrowerAPR.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'BorrowerAPR', bins = bins)
+plt.xlabel('APR')
+plt.ylabel('Count')
+plt.show()
+```
+
+```{python}
+# getting a first overview over the variable OpenCreditLines
+loan_data_clean.OpenCreditLines.describe()
+```
+
+```{python}
+# Histogramm OpenCreditLines (Number of open credit lines at the time the credit profile was pulled)
+binsize = 0.5
+bins = np.arange(0, loan_data_clean.OpenCreditLines.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'OpenCreditLines', bins = bins)
+plt.xlabel('Open Credit Lines')
+plt.ylabel('Count')
+plt.xticks([0,5,10,15,20,25,30,35,40,45,50])
+plt.show()
+```
+
+```{python}
+# getting a first overview over the variable LoanOriginalAmount
+loan_data_clean.LoanOriginalAmount.describe()
+```
+
+```{python}
+# Histogramm LoanOriginalAmount (The origination amount of the loan)
+binsize = 250
+bins = np.arange(0, loan_data_clean.LoanOriginalAmount.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'LoanOriginalAmount', bins = bins)
+plt.xlabel('Amount of the Loan')
+plt.ylabel('Count')
+plt.show()
+```
+
+```{python}
+# getting a first overview over the variable MonthlyLoanPayment
+loan_data_clean.MonthlyLoanPayment.describe()
+```
+
+```{python}
+binsize = 75
+bins = np.arange(loan_data_clean.MonthlyLoanPayment.min(), loan_data_clean.MonthlyLoanPayment.max()+binsize, binsize)
+
+plt.figure(figsize=[8, 5])
+plt.hist(data = loan_data_clean, x = 'MonthlyLoanPayment', bins = bins)
+plt.xlabel('Monthly Loan Payment')
+plt.ylabel('Count')
+plt.show()
 ```
 
 ### Discuss the distribution(s) of your variable(s) of interest. Were there any unusual points? Did you need to perform any transformations?
