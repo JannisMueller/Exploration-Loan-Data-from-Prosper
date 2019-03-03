@@ -54,9 +54,8 @@ print(loan_data.dtypes)
 
 ### The structure of the dataset
 
-The Data set contains 113,937 loans (rows) with 81 variables (columns) on each loan. Most variables are integers (numeric) or strings (objects). But the dataset also has some categorical variables: for example CreditGrade, ProsperRating, EmploymentStatus, LoanStatus, ProsperScore
+The Data set contains 113,937 loans (rows) with 81 variables (columns) on each loan. Most variables are integers (numeric) or strings (objects). But the dataset also has some categorical variables: for example EmploymentStatus, ProsperScore, Term, IncomeRange
 
-(worst) ——> (best)
 
 ### Main features of interest in the dataset
 
@@ -71,26 +70,25 @@ This investigation might help to find out what factors predict the outcome of a 
 
 ### Features in the dataset that will help support the investigation
 
-I think the factors that have the most influence on predicting the outcome of a loan are:
+The factors that have the most influence on predicting the outcome of a loan and therefore of most interest are:
 
  - Term (The length of the loan expressed in months)
  - ProsperScore (custom risk score)
  - EmploymentStatus (The employment status of the borrower)
- - MonthlyLoanPayment
- - IncomeRange
- - BorrowerAPR
- - BorrowerRate
- - LoanOriginalAmount
+ - MonthlyLoanPayment (The scheduled monthly loan payment)
+ - IncomeRange (The income range of the borrower at the time the listing was created)
+ - BorrowerRate (The Borrower's interest rate for this loan)
+ - LoanOriginalAmount (The origination amount of the loan)
  - OpenCreditLines (Number of open credit line)
  - TotalProsperPaymentsBilled (number of on time payments the borrower made on Prosper loans at the time they created this listing)
- - Recommendations
+ - Recommendations (Number of recommendations the borrower had at the time the listing was created)
 
 
-Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `LoanOriginalAmount`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and `monthly loan payment`  have  the strongest effect on the loan's outcome status.
+Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `EmploymentStatus`, `BorrowerRate`,  (high interest rate are associated with higher default risk) and `Income Range`  have  the strongest effect on the loan's outcome status.
  
 
 
-In the first step I will create a copy of the dataset with the variables of interest
+#### In the first step I will create a copy of the dataset with the variables of interest
 
 ```{python}
 # create a copy of the dataset
@@ -102,13 +100,31 @@ print(loan_data_clean.head())
 print(loan_data_clean.info())
 ```
 
-I decided to work with a smaller number of observations since I wasnt able to perform operations in my local notebook
+#### Since the variables EmploymentStatus, ProsperScore, Term, IncomeRange are basically categorical variabels, I will change their datatype till categorical
 
+```{python}
+# changing the datatypes till categorical
+loan_data_clean['ProsperScore'] = loan_data_clean['ProsperScore'].astype('category')
+loan_data_clean['Term'] = loan_data_clean['Term'].astype('category')
+loan_data_clean['IncomeRange'] = loan_data_clean['IncomeRange'].astype('category')
+loan_data_clean['EmploymentStatus'] = loan_data_clean['EmploymentStatus'].astype('category')
+print(loan_data_clean.info())
+```
 
 ## Univariate Exploration
 
-I'll start by looking at the distribution of the main variable of interest ProsperScore, TotalProsperPaymentsBilled, BorrowerRate and IncomeRange.
+I'll start by looking at the distribution of the main variable of interest
+ - ProsperScore 
+ - TotalProsperPaymentsBilled
+ - BorrowerRate
+ - EmploymentStatus
+ - IncomeRange
+ 
 
+Source for all interpretations:
+https://www.dummies.com/education/math/statistics/statistics-workbook-for-dummies-cheat-sheet/
+
+Diamonds Data Exploration- Example Project
 
 
 > In this section, investigate distributions of individual variables. If
@@ -124,28 +140,55 @@ include a Markdown cell with comments about what you observed, and what
 you plan on investigating next.
 
 ```{python}
-# Histogramm Prosper Score
-binsize = 0.5
-bins = np.arange(1, loan_data_clean.ProsperScore.max()+binsize, binsize)
+# getting a first overview over the variable ProsperScore
+print(loan_data_clean.ProsperScore.describe())
+print(loan_data_clean.ProsperScore.value_counts())
+```
 
-plt.figure(figsize=[8, 5])
-plt.hist(data = loan_data_clean, x = 'ProsperScore', bins = bins)
-plt.xlabel('Prosper Score')
-plt.ylabel('Count')
-plt.show()
+```{python}
+# Bar Chart ProsperScore (custom risk score built using historical Prosper data)
+# The score ranges from 1-10, with 10 being the best, or lowest risk score)
+
+sb.countplot(data = loan_data_clean, x = 'ProsperScore', color = base_color, order = loan_data_clean['ProsperScore'].value_counts().index)
+plt.xlabel('Prosper Score (from 1-10, with 10 being the best)');
+```
+
+The bar chart shows that there are customers in the data set that have a score of 11 which should not be possible since the score just ranges from 1-10 which needs to be cleaned in the next step
+
+```{python}
+# I will exclude all customers with a Prosper Score of 11
+loan_data_clean = loan_data_clean[loan_data_clean['ProsperScore'] != 11]
+#dubbel check if the operation was succesful
+loan_data_clean[loan_data_clean['ProsperScore'] == 11]
+```
+
+```{python}
+# now I will again plot the bar chart
+sb.countplot(data = loan_data_clean, x = 'ProsperScore', color = base_color, order = loan_data_clean['ProsperScore'].value_counts().index)
+plt.xlabel('Prosper Score (from 1-10, with 10 being the best)');
+```
+
+#### Most of the borrower have a fairly low Prosper Score of 4 (custom risk score) while the majority of the customer have a score between 5-8. You can also see that even customers with the low risks score of 1 or 2 did get a loan from Prosper. Furthermore, not many borrowers received the highest score of 10
+
+```{python}
+# getting a first overview over the TotalProsperPaymentsBilled
+loan_data.TotalProsperPaymentsBilled.describe()
 ```
 
 ```{python}
 # Histogramm TotalProsperPaymentsBilled (Number of on time payments)
-binsize = 1
+binsize = 0.5
 bins = np.arange(loan_data_clean.TotalProsperPaymentsBilled.min(), loan_data_clean.TotalProsperPaymentsBilled.max()+binsize, binsize)
 
-plt.figure(figsize=[8, 5])
+plt.figure(figsize=[10, 5])
 plt.hist(data = loan_data_clean, x = 'TotalProsperPaymentsBilled', bins = bins)
 plt.xlabel('Number of on time payments')
 plt.ylabel('Count')
+plt.xticks([0,5,10,20,30,35,40,50,60,70,80,90,100,110,120,130,140,150])
 plt.show()
 ```
+
+#### The distribution of the Number of on time payments is long-tailed with two peaks: 9 and 35. It is interesting to see that the distribution is right-skewed with most of the values on the lower end and fewer values on the higher end. But we observe a second uprise between 30-36. This would make the distribution roughly bi-modial. On the first view it therefore seems like that most of the borrowers had missed to pay some of the monthly payments on time.
 
 ```{python}
 # getting a first overview over the variable BorrowerRate
@@ -153,28 +196,57 @@ loan_data.BorrowerRate.describe()
 ```
 
 ```{python}
-sb.countplot(data= loan_data_clean, x= 'IncomeRange', color= base_color, order=loan_data_clean['IncomeRange'].value_counts().index)
-plt.xticks(rotation=25)
-plt.xlabel('Income Range')
-plt.ylabel('Count');
-```
-
-```{python}
-# Histogramm  BorrowerRate (Borrower's interest rate for this loan.)
-binsize = 0.01
+# Histogramm  BorrowerRate (Borrower's interest rate for this loan)
+binsize = 0.005
 bins = np.arange(loan_data.BorrowerRate.min(), loan_data.BorrowerRate.max()+binsize, binsize)
 
 plt.figure(figsize=[8, 5])
 plt.hist(data = loan_data_clean, x = 'BorrowerRate', bins = bins)
 plt.xlabel('Interest Rate')
 plt.ylabel('Count')
+plt.xticks([0.0,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5])
 plt.show()
 ```
 
-Now I also will plot the remainig factors:
+#### One can see in the histogramm that most of the borrowers have an interest rate between of 0.1 and 0.25, but with a peak at around 0.33. 
 
- - Term                          
- - EmploymentStatus              
+```{python}
+# getting a first overview over the variable IncomeRange
+print(loan_data.IncomeRange.describe())
+print(loan_data.IncomeRange.value_counts())
+
+```
+
+```{python}
+#Bar chart of the variable IncomeRange(The income range of the borrower at the time the listing was created)
+base_color = sb.color_palette()[0]
+sb.countplot(data= loan_data_clean, x= 'IncomeRange', color= base_color, order=loan_data_clean['IncomeRange'].value_counts().index)
+plt.xticks(rotation=25)
+plt.xlabel('Income Range ($)')
+plt.ylabel('Count');
+```
+
+#### The income range of the borrowers shows that most of the loans where give to customers with a income between 25,000 and 74,999 which indicates that the borrowers are mostly middle-class (https://www.cnbc.com/2018/09/26/how-many-americans-qualify-as-middle-class.html). However, there are a fairly high number of borrowers that earns more than 75,000. One can also see that people that are not employed, not displayed their income or have an income of 0 received a loan from Prosper as well. They might be other criterias than income that qualifies one to get a loan at Prosper.
+
+```{python}
+# getting a first overview over the variable EmploymentStatus
+loan_data_clean.EmploymentStatus.describe()
+```
+
+```{python}
+# plotting EmploymentStatus (The employment status of the borrower at the time they posted the listing) 
+sb.countplot(data= loan_data_clean, x= 'EmploymentStatus', color= base_color, order=loan_data_clean['EmploymentStatus'].value_counts().index)
+plt.xticks(rotation=25)
+plt.xlabel('Employment Status')
+plt.ylabel('Count');
+```
+
+#### As expected are most of the borrowers employed of some kind (full-time, part-time, self-emplpoyed) but the data shows that even unemployed and retired persons could get a loan.
+
+
+#### Now I also will plot the remainig factors:
+
+ - Term                                       
  - Recommendations                   
  - BorrowerAPR                                    
  - OpenCreditLines
@@ -185,70 +257,35 @@ Now I also will plot the remainig factors:
 
 ```{python}
 # getting a first overview over the variable Term
-loan_data_clean.Term.describe()
+print(loan_data_clean.Term.describe())
+print(loan_data_clean.Term.value_counts())
 ```
 
 ```{python}
-# plotting Term (The length of the loan expressed in months)
-binsize = 1
-bins = np.arange(0, loan_data_clean.Term.max()+binsize, binsize)
+# Bar chart of the variable Term (The length of the loan expressed in months)
+sb.countplot(data=loan_data_clean, x='Term', color=base_color, order = loan_data_clean['Term'].value_counts().index)
+plt.xlabel('Term of the loan (month)');
 
-plt.figure(figsize=[8, 5])
-plt.hist(data = loan_data_clean, x = 'Term', bins = bins)
-plt.xlabel('Loan Terms')
-plt.ylabel('Count')
-plt.xticks([0,10,15,20,25,30,35,40,45,50,55,60,65])
-plt.show()
 ```
 
 ```{python}
-# getting a first overview over the variable EmploymentStatus
-loan_data_clean.EmploymentStatus.describe()
+loan_data_clean.LoanOriginalAmount.mean()
 ```
 
-```{python}
-# plotting EmploymentStatus (The employment status of the borrower at the time they posted the listing) 
-base_color = sb.color_palette()[0]
-sb.countplot(data= loan_data_clean, x= 'EmploymentStatus', color= base_color, order=loan_data_clean['EmploymentStatus'].value_counts().index)
-plt.xticks(rotation=25)
-plt.xlabel('Employment Status')
-plt.ylabel('Count');
-```
+#### Most of the loans have of length of 36 months, followed by 60 months while just a small amounts of loans have the minium lenght of 12 months. The fact that most of the loans have a length of just 36 months might correlated to the fact the average loan amount is around 8200 dollar which can be paid back quick. 
 
 ```{python}
 # getting a first overview over the variable BorrowerAPR
-loan_data_clean.BorrowerAPR.describe()
+print(loan_data_clean.Recommendations.describe())
+print(loan_data_clean.Recommendations.value_counts())
 ```
 
 ```{python}
-# plotting Recommendations(Number of recommendations the borrower had at the time th)
-binsize = 1
-bins = np.arange(0, loan_data_clean.Recommendations.max()+binsize, binsize)
-
-plt.figure(figsize=[8, 5])
-plt.hist(data = loan_data_clean, x = 'Recommendations', bins = bins)
-plt.xlabel('Number of recommendations')
-plt.ylabel('Count')
-plt.xticks([0,1,2,3,4,5,20])
-plt.show()
+# plotting Recommendations(Number of recommendations the borrower had at the time of the loan)
+sb.countplot(data=loan_data_clean, x = 'Recommendations', color = base_color);
 ```
 
-```{python}
-# getting a first overview over the variable BorrowerAPR
-loan_data_clean.BorrowerAPR.describe()
-```
-
-```{python}
-# Histogramm BorrowerAPR (The Borrower's Annual Percentage Rate (APR) for the loan)
-binsize = 0.001
-bins = np.arange(loan_data.BorrowerAPR.min(), loan_data.BorrowerAPR.max()+binsize, binsize)
-
-plt.figure(figsize=[8, 5])
-plt.hist(data = loan_data_clean, x = 'BorrowerAPR', bins = bins)
-plt.xlabel('APR')
-plt.ylabel('Count')
-plt.show()
-```
+#### One can see that most of the borrowers had 0 recommendations which suggest that the recommendations play a small role in the evalutation of a loan request
 
 ```{python}
 # getting a first overview over the variable OpenCreditLines
@@ -268,44 +305,62 @@ plt.xticks([0,5,10,15,20,25,30,35,40,45,50])
 plt.show()
 ```
 
+#### The distribution is long-tailed and right skewed with most borrowers having between 5 and 15 open credit lines. This sounds much but without having information more information of the amount of the loans, it is hard to give a more detailed statement
+
+
 ```{python}
 # getting a first overview over the variable LoanOriginalAmount
-loan_data_clean.LoanOriginalAmount.describe()
+print(loan_data_clean.LoanOriginalAmount.describe())
+print(loan_data_clean.LoanOriginalAmount.value_counts().head(20))
 ```
 
 ```{python}
 # Histogramm LoanOriginalAmount (The origination amount of the loan)
-binsize = 250
+binsize = 400
 bins = np.arange(0, loan_data_clean.LoanOriginalAmount.max()+binsize, binsize)
 
 plt.figure(figsize=[8, 5])
 plt.hist(data = loan_data_clean, x = 'LoanOriginalAmount', bins = bins)
 plt.xlabel('Amount of the Loan')
 plt.ylabel('Count')
+plt.xticks([0,2500,5000,7500,10000,12500,15000,17500,20000,22500,25000,30000,35000], rotation=25)
 plt.show()
 ```
 
+#### The distribution has serval peaks at around 4,000, 10,000 and 15,000. But most of the values are in the lower end between 2500 and 10,000. The most loaned amounts are 4,000 and 15,000. Its a little bit suprising that the two most loaned amounts have such a difference in terms of the loan amount. One would expect one peak but maybe Prosper targets several customer groups.
+
 ```{python}
 # getting a first overview over the variable MonthlyLoanPayment
-loan_data_clean.MonthlyLoanPayment.describe()
+print(loan_data_clean.MonthlyLoanPayment.describe())
 ```
 
 ```{python}
-binsize = 75
+# Histogramm MonthlyLoanPayment (scheduled monthly loan payment)
+binsize = 10
 bins = np.arange(loan_data_clean.MonthlyLoanPayment.min(), loan_data_clean.MonthlyLoanPayment.max()+binsize, binsize)
 
 plt.figure(figsize=[8, 5])
 plt.hist(data = loan_data_clean, x = 'MonthlyLoanPayment', bins = bins)
 plt.xlabel('Monthly Loan Payment')
 plt.ylabel('Count')
+plt.xticks([0,200,400,600,800,1000,1200,1400,1600,1800,2000])
 plt.show()
 ```
 
+#### The distribution is right skrewed and long-tailed with a lot of loans with small montly payments. The peak is at around 200. A strange observation is the fact that around 1000 loans have a monthly payment of 0 which doesnt really make sense but might be related to some special arrangement (for example: the customer does not need to pay back the loan during the first 6 months). Therefore, I decided to the keep these values in the dataset.
+
+
 ### Discuss the distribution(s) of your variable(s) of interest. Were there any unusual points? Did you need to perform any transformations?
+
 
 > Your answer here!
 
 ### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+Since the variables EmploymentStatus, ProsperScore, Term, IncomeRange are basically categorical variabels, I will change their datatype till categorical
+
+The bar chart shows that there are customers in the data set that have a score of 11 which should not be possible since the score just ranges from 1-10 which needs to be cleaned in the next step
+
+hat around 1000 loans have a monthly payment of 0 which doesnt really make sense but might be related to some special arrangement (for example: the customer does not need to pay back the loan during the first 6 months). Therefore, I decided to the keep these values in the dataset.
 
 > Your answer here!
 
