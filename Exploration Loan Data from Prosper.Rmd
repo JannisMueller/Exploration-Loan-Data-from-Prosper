@@ -94,7 +94,7 @@ Whereby I expect  to have  `ProsperScore`, `TotalProsperPaymentsBilled`, `Employ
 # create a copy of the dataset
 loan_data_clean = loan_data.copy()
 # include all variables that are needed in the investigation in the clean copy
-loan_data_clean = loan_data_clean[['Term','ProsperScore','EmploymentStatus', 'MonthlyLoanPayment', 'Recommendations','BorrowerAPR','BorrowerRate','LoanOriginalAmount', 'OpenCreditLines','StatedMonthlyIncome','TotalProsperPaymentsBilled', 'IncomeRange']]
+loan_data_clean = loan_data_clean[['ListingKey', 'LoanStatus', 'Term','ProsperScore','EmploymentStatus', 'MonthlyLoanPayment', 'Recommendations','BorrowerAPR','BorrowerRate','LoanOriginalAmount', 'OpenCreditLines','StatedMonthlyIncome','TotalProsperPaymentsBilled', 'IncomeRange']]
 #getting a overview over the new dataset
 print(loan_data_clean.head())
 print(loan_data_clean.info())
@@ -108,6 +108,7 @@ loan_data_clean['ProsperScore'] = loan_data_clean['ProsperScore'].astype('catego
 loan_data_clean['Term'] = loan_data_clean['Term'].astype('category')
 loan_data_clean['IncomeRange'] = loan_data_clean['IncomeRange'].astype('category')
 loan_data_clean['EmploymentStatus'] = loan_data_clean['EmploymentStatus'].astype('category')
+loan_data_clean['LoanStatus'] = loan_data_clean['LoanStatus'].astype('category')
 print(loan_data_clean.info())
 ```
 
@@ -119,7 +120,7 @@ I'll start by looking at the distribution of the main variable of interest
  - BorrowerRate
  - EmploymentStatus
  - IncomeRange
- 
+
 
 Source for all interpretations:
 https://www.dummies.com/education/math/statistics/statistics-workbook-for-dummies-cheat-sheet/
@@ -138,6 +139,39 @@ and prepare yourself to look at relationships between variables.
 > Make sure that, after every plot or related series of plots, that you
 include a Markdown cell with comments about what you observed, and what
 you plan on investigating next.
+
+```{python}
+# getting a first overview over the variable LoanStatus
+print(loan_data_clean.LoanStatus.describe())
+print(loan_data_clean.LoanStatus.value_counts())
+```
+
+```{python}
+# bar chart LoanStatus (The current status of the loan: Cancelled, Chargedoff, Completed, Current, Defaulted, FinalPaymentInProgress, PastDue)
+base_color = sb.color_palette()[0]
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', color = base_color)
+plt.xlabel('Current Status of the Loan')
+plt.xticks(rotation = 22);
+```
+
+In the next step I will transform the past due to just one.. since I mostly interested if a loan is past due and not for how long the loan is overdue. 
+
+```{python}
+# replacing Past Due (1-15 days), Past Due (31-60 days) etc. with just Past Due
+loan_data_clean['LoanStatus'] = loan_data_clean['LoanStatus'].replace(['Past Due (1-15 days)', 'Past Due (31-60 days)','Past Due (61-90 days)','Past Due (91-120 days)','Past Due (16-30 days)','Past Due (>120 days)'],'Past Due')
+print(loan_data_clean.LoanStatus.value_counts())
+print(loan_data_clean.info())
+```
+
+```{python}
+# plotting the bar chart of LoanStatus again
+base_color = sb.color_palette()[0]
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index )
+plt.xlabel('Current Status of the Loan')
+plt.xticks(rotation = 45);
+```
+
+#### Most of the loans are current or completed. However there are a fairly significant number of loans that are charged off, defaulted or past due. 
 
 ```{python}
 # getting a first overview over the variable ProsperScore
@@ -219,7 +253,7 @@ print(loan_data.IncomeRange.value_counts())
 
 ```{python}
 #Bar chart of the variable IncomeRange(The income range of the borrower at the time the listing was created)
-base_color = sb.color_palette()[0]
+
 sb.countplot(data= loan_data_clean, x= 'IncomeRange', color= base_color, order=loan_data_clean['IncomeRange'].value_counts().index)
 plt.xticks(rotation=25)
 plt.xlabel('Income Range ($)')
@@ -284,6 +318,18 @@ print(loan_data_clean.Recommendations.value_counts())
 # plotting Recommendations(Number of recommendations the borrower had at the time of the loan)
 sb.countplot(data=loan_data_clean, x = 'Recommendations', color = base_color);
 ```
+
+Since most of the data is next to y axis, there might be strong outliers within the higher values
+
+```{python}
+# identifying outliers based on the plot
+Recommendations_outliers = loan_data_clean['Recommendations'] > 5
+print(Recommendations_outliers.sum())
+print(loan_data_clean.loc[Recommendations_outliers,:])
+```
+
+Since the customers with more than 5 recommendations also have a high number of open credit lines (this might be the reason for high recommendations), the outliers are not errors in the data set.
+
 
 #### One can see that most of the borrowers had 0 recommendations which suggest that the recommendations play a small role in the evalutation of a loan request
 
@@ -350,19 +396,54 @@ plt.show()
 #### The distribution is right skrewed and long-tailed with a lot of loans with small montly payments. The peak is at around 200. A strange observation is the fact that around 1000 loans have a monthly payment of 0 which doesnt really make sense but might be related to some special arrangement (for example: the customer does not need to pay back the loan during the first 6 months). Therefore, I decided to the keep these values in the dataset.
 
 
-### Discuss the distribution(s) of your variable(s) of interest. Were there any unusual points? Did you need to perform any transformations?
+### Discussion of the distributions of the variables of interest. 
 
 
-> Your answer here!
+#### 1. Distributions
 
-### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
-Since the variables EmploymentStatus, ProsperScore, Term, IncomeRange are basically categorical variabels, I will change their datatype till categorical
+ - Most of the loans are current or completed. However there are a fairly significant number of loans that are    
+   charged off, defaulted or past due. 
+ - The income range of the borrowers shows that most of the loans where give to customers with a income between  
+   25,000 and 74,999 which indicates that the borrowers are mostly middle-class.
 
-The bar chart shows that there are customers in the data set that have a score of 11 which should not be possible since the score just ranges from 1-10 which needs to be cleaned in the next step
+ - Most of the borrower have a fairly low Prosper Score of 4 (custom risk score) while the majority of the customer   
+   have a score between 5-8. You can also see that even customers with the low risks score of 1 or 2 did get a loan   
+   from Prosper. Furthermore, not many borrowers received the highest score of 10.
 
-hat around 1000 loans have a monthly payment of 0 which doesnt really make sense but might be related to some special arrangement (for example: the customer does not need to pay back the loan during the first 6 months). Therefore, I decided to the keep these values in the dataset.
+ - The distribution of the lenght of the loan (Term) shows that most of the loans have of length of 36 months,  
+   followed by 60 months while just a small amounts of loans have the minium lenght of 12 months.
 
-> Your answer here!
+ - The distribution of the Number of on time payments is long-tailed with two peaks: 9 and 35. It is interesting to  
+   see that the distribution is right-skewed with most of the values on the lower end and fewer values on the higher    end. But we observe a second uprise between 30-36. This would make the distribution roughly bi-modial. On the   
+   first view it therefore seems like that most of the borrowers had missed to pay some of the monthly payments on  
+   time.
+
+ - The distribution of the loan amount has serval peaks at around 4,000, 10,000 and 15,000. But most of the values  
+   are in the lower end between 2500 and 10,000.
+
+ - The distribution of the open credit line is long-tailed and right skewed with most borrowers having between 5 and    15 open credit lines.
+
+
+#### 2. Unusual distributions
+ - One can also see in the distribution of the Employment status that people that are not employed, not displayed  
+   their income or have an income of 0 received a loan from Prosper as well. They might be other criterias than  
+   income that qualifies one to get a loan at Prosper.
+ - it was a little bit suprising that the distribution of the loan amounts has several peaks: the two most loaned  
+   amounts (the two highest peaks in the distribution, 4000 & 15000) have such a difference in terms of the loan  
+   amount. One would expect one peak; but maybe Prosper targets several customer groups
+ - As expected are most of the borrowers employed of some kind (full-time, part-time, self-emplpoyed) but the data 
+   shows that even unemployed and retired persons could get a loan.
+
+#### 3.  tidy, adjust, or change the form of the data
+ - Since the variables EmploymentStatus, ProsperScore, Term, IncomeRange are basically categorical variabels, I   
+   changed their datatype till categorical
+
+ - The bar chart of the Prosper Score showed that there are customers in the data set that have a score of 11 which      should not be possible since the score just ranges from 1-10 which I cleaned (removed them from the dataset)
+
+ - around 1000 loans have a monthly payment of 0 which doesnt really make sense but might be related to some special 
+   arrangement (for example: the customer does not need to pay back the loan during the first 6 months). Therefore, I 
+   decided to the keep these values in the dataset.
+
 
 
 ## Bivariate Exploration
