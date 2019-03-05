@@ -159,6 +159,7 @@ In the next step I will transform the past due to just one.. since I mostly inte
 ```{python}
 # replacing Past Due (1-15 days), Past Due (31-60 days) etc. with just Past Due
 loan_data_clean['LoanStatus'] = loan_data_clean['LoanStatus'].replace(['Past Due (1-15 days)', 'Past Due (31-60 days)','Past Due (61-90 days)','Past Due (91-120 days)','Past Due (16-30 days)','Past Due (>120 days)'],'Past Due')
+loan_data_clean['LoanStatus'] = loan_data_clean['LoanStatus'].replace('FinalPaymentInProgress','InProgress')
 print(loan_data_clean.LoanStatus.value_counts())
 print(loan_data_clean.info())
 ```
@@ -168,7 +169,7 @@ print(loan_data_clean.info())
 base_color = sb.color_palette()[0]
 sb.countplot(data = loan_data_clean, x = 'LoanStatus', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index )
 plt.xlabel('Current Status of the Loan')
-plt.xticks(rotation = 45);
+plt.xticks(rotation = 35);
 ```
 
 #### Most of the loans are current or completed. However there are a fairly significant number of loans that are charged off, defaulted or past due. 
@@ -331,7 +332,7 @@ print(loan_data_clean.loc[Recommendations_outliers,:])
 Since the customers with more than 5 recommendations also have a high number of open credit lines (this might be the reason for high recommendations), the outliers are not errors in the data set.
 
 
-#### One can see that most of the borrowers had 0 recommendations which suggest that the recommendations play a small role in the evalutation of a loan request
+#### One can see that most of the borrowers had 0 recommendations which suggest that the recommendations play a small role in the evalutation of a loan request.
 
 ```{python}
 # getting a first overview over the variable OpenCreditLines
@@ -448,12 +449,244 @@ plt.show()
 
 ## Bivariate Exploration
 
-> In this section, investigate relationships between pairs of variables in your
-data. Make sure the variables that you cover here have been introduced in some
-fashion in the previous section (univariate exploration).
+As mentoined, I am interested in the relationship between certain variables and the outcome of the loan (current status of the loan). So I will now plot the variables of interest against the outcome of the loan. 
+Since the we have both categorical and numeric in the data set, I will plot those seperatly: first part with numeric variables (I plot a violinplot and a boxplot for each variable) and then in the second part wiht the 
+
+
+#### Part 1: Numeric Variabales
 
 ```{python}
+#plotting the monthy loan payment with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
 
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'MonthlyLoanPayment', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Monthly Loan Payments')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'MonthlyLoanPayment', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Monthly Loan Payments');
+```
+
+```{python}
+#plotting Recommendations with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
+
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'Recommendations', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Recommendations')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'Recommendations', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Recommendations');
+```
+
+```{python}
+#plotting BorrowerRate (interest rate) with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
+
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'BorrowerRate', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Interest Rate')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'BorrowerRate', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Interest Rate');
+```
+
+```{python}
+#plotting LoanOriginalAmount (Original Loan Amount) with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
+
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'LoanOriginalAmount', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Original Loan Amount')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'LoanOriginalAmount', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Original Loan Amount');
+```
+
+```{python}
+#plotting OpenCreditLines (Open Credit Lines) with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
+
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'OpenCreditLines', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Original Loan Amount')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'OpenCreditLines', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Open Credit Lines');
+```
+
+```{python}
+#plotting TotalProsperPaymentsBilled (On time Payments) with a violinplot and a boxplot against LoanStatus 
+plt.figure(figsize = [25, 18])
+
+plt.subplot(2, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'TotalProsperPaymentsBilled', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('On time Payments')
+
+plt.subplot(2, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'TotalProsperPaymentsBilled', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('On time Payments');
+```
+
+#boxplotting all numeric variabels against LoanStatus 
+plt.figure(figsize = [25, 50])
+
+plt.subplot(6, 2, 1)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'MonthlyLoanPayment', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Monthly Loan Payments')
+
+plt.subplot(6, 2, 2)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'Recommendations', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+sounts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Recommendations')
+
+plt.subplot(6, 2, 3)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'BorrowerRate', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Interest Rate')
+
+plt.subplot(6, 2, 4)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'LoanOriginalAmount', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Original Loan Amount')
+
+plt.subplot(6, 2, 5)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'OpenCreditLines', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Open Credit Lines')
+
+plt.subplot(6, 2, 6)
+sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'TotalProsperPaymentsBilled', color = base_color,order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('On time Payments');
+
+
+#now I also plot all numeric variabels against LoanStatus in form of violinplots
+plt.figure(figsize = [25, 50])
+
+plt.subplot(6, 2, 1)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'MonthlyLoanPayment', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Monthly Loan Payments')
+
+plt.subplot(6, 2, 2)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'Recommendations', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Recommendations')
+
+plt.subplot(6, 2, 3)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'BorrowerRate', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Interest Rate')
+
+plt.subplot(6, 2, 4)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'LoanOriginalAmount', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Original Loan Amount')
+
+plt.subplot(6, 2, 5)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'OpenCreditLines', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('Open Credit Lines')
+
+plt.subplot(6, 2, 6)
+sb.violinplot(data = loan_data_clean, x = 'LoanStatus', y = 'TotalProsperPaymentsBilled', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.xticks(rotation=45)
+plt.xlabel('Status of the Loan')
+plt.ylabel('On time Payments');
+
+
+#### Part 2: Categorical Variabales
+
+```{python}
+print(loan_data_clean.info())
+```
+
+```{python}
+#plotting Term (length of the Loan) variabels against LoanStatus with help of a clusterd bar chart
+plt.figure(figsize = [20,10])
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'Term', order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.legend(loc = 1, ncol = 3, title = 'Length of the Loan (in month)')
+plt.xticks(rotation = 25)
+plt.xlabel('Status of the Loan');
+```
+
+```{python}
+#plotting EmploymentStatus (Status of Employment) against LoanStatus with help of a heat map
+plt.figure(figsize = [20,10])
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'EmploymentStatus', order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.legend(loc = 1, ncol = 8, title = 'Status of Employment')
+plt.xticks(rotation = 25)
+plt.xlabel('Status of the Loan');
+
+```
+
+```{python}
+#plotting EmploymentStatus (Status of Employment) against LoanStatus with help of a heat map
+plt.figure(figsize = [20,10])
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'IncomeRange', order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.legend(loc = 1, ncol = 8, title = 'Status of Employment')
+plt.xticks(rotation = 25)
+plt.xlabel('Status of the Loan');
+```
+
+```{python}
+#plotting ProsperScore against LoanStatus with help of a heat map
+
+# In the first step I need to reshape the data to
+ct_counts_2 = loan_data_clean.groupby(['LoanStatus', 'ProsperScore']).size()
+ct_counts_2 = ct_counts_2.reset_index(name = 'count')
+ct_counts_2 = ct_counts_2.pivot(index = 'ProsperScore', columns = 'LoanStatus', values = 'count')
+ct_counts_2
+```
+
+```{python}
+#plotting ProsperScore against LoanStatus with help of a heat map
+plt.figure(figsize = [15,7])
+sb.heatmap(ct_counts_2, annot = True, fmt = 'd', cmap='Blues')
+plt.xlabel('Status of the Loan')
+plt.ylabel('Prosper Score');
 ```
 
 ### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
