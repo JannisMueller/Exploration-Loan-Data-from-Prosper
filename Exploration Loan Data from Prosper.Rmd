@@ -646,10 +646,11 @@ print(loan_data_clean.info())
 ```{python}
 #plotting Term (length of the Loan) variabels against LoanStatus with help of a clusterd bar chart
 plt.figure(figsize = [20,10])
-sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'Term', order = loan_data_clean['LoanStatus'].value_counts().index)
+ax = sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'Term', palette = "GnBu_d", order = loan_data_clean['LoanStatus'].value_counts().index)
 plt.legend(loc = 1, ncol = 3, title = 'Length of the Loan (in month)')
 plt.xticks(rotation = 25)
-plt.xlabel('Status of the Loan');
+plt.xlabel('Status of the Loan')
+ax.set_ylabel("Sequential");
 ```
 
 ```{python}
@@ -663,10 +664,11 @@ plt.xlabel('Status of the Loan');
 ```
 
 ```{python}
-#plotting EmploymentStatus (Status of Employment) against LoanStatus with help of a heat map
+#plotting Income Range against LoanStatus with help of a heat map
+color = sb.color_palette()[0]
 plt.figure(figsize = [20,10])
-sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'IncomeRange', order = loan_data_clean['LoanStatus'].value_counts().index)
-plt.legend(loc = 1, ncol = 8, title = 'Status of Employment')
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'IncomeRange', color = color, order = loan_data_clean['LoanStatus'].value_counts().index)
+plt.legend(loc = 1, ncol = 8, title = 'Income Range')
 plt.xticks(rotation = 25)
 plt.xlabel('Status of the Loan');
 ```
@@ -675,16 +677,17 @@ plt.xlabel('Status of the Loan');
 #plotting ProsperScore against LoanStatus with help of a heat map
 
 # In the first step I need to reshape the data to
-ct_counts_2 = loan_data_clean.groupby(['LoanStatus', 'ProsperScore']).size()
-ct_counts_2 = ct_counts_2.reset_index(name = 'count')
-ct_counts_2 = ct_counts_2.pivot(index = 'ProsperScore', columns = 'LoanStatus', values = 'count')
-ct_counts_2
+ct_counts = loan_data_clean.groupby(['LoanStatus', 'ProsperScore']).size()
+ct_counts = ct_counts.reset_index(name = 'count')
+ct_counts = ct_counts.pivot(index = 'ProsperScore', columns = 'LoanStatus', values = 'count')
+ct_counts
 ```
 
 ```{python}
 #plotting ProsperScore against LoanStatus with help of a heat map
 plt.figure(figsize = [15,7])
-sb.heatmap(ct_counts_2, annot = True, fmt = 'd', cmap='Blues')
+mask = ct_counts.isnull()
+sb.heatmap(ct_counts, annot = True, fmt = 'd', cmap = 'Blues',mask = mask)
 plt.xlabel('Status of the Loan')
 plt.ylabel('Prosper Score');
 ```
