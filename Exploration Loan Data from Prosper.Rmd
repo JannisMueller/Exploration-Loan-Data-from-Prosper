@@ -450,7 +450,8 @@ plt.show()
 ## Bivariate Exploration
 
 As mentoined, I am interested in the relationship between certain variables and the outcome of the loan (current status of the loan). So I will now plot the variables of interest against the outcome of the loan. 
-Since the we have both categorical and numeric in the data set, I will plot those seperatly: first part with numeric variables (I plot a violinplot and a boxplot for each variable) and then in the second part wiht the 
+Since the we have both categorical and numeric in the data set, I will plot those seperatly: the first part with numeric variables (I plot a violinplot and a boxplot for each variable) and the second part with categorical variables.
+Since the loan status `current` and `FinalPaymentInProgress` doesnt really say much about the outcome and will change its status over time, the investigation will not put much emphasis on this status and rather focus on the ones that are completed versus the ones that defaultet, charged-off and past due
 
 
 #### Part 1: Numeric Variabales
@@ -472,6 +473,8 @@ plt.xlabel('Status of the Loan')
 plt.ylabel('Monthly Loan Payments');
 ```
 
+#### The plots show that there is relationship between the monthly payments and the negative outcome of the loan for Prosper: loans that are charged-off, loans with past due payments and defaulted loans have in average higher monthly payments.
+
 ```{python}
 #plotting Recommendations with a violinplot and a boxplot against LoanStatus 
 plt.figure(figsize = [25, 18])
@@ -488,6 +491,8 @@ plt.xticks(rotation=45)
 plt.xlabel('Status of the Loan')
 plt.ylabel('Recommendations');
 ```
+
+#### The dataset resp. the plots doesnt give me the possibility to make a statment of the relationship between LoanStatus and Recommendations
 
 ```{python}
 #plotting BorrowerRate (interest rate) with a violinplot and a boxplot against LoanStatus 
@@ -506,6 +511,8 @@ plt.xlabel('Status of the Loan')
 plt.ylabel('Interest Rate');
 ```
 
+#### The plots clearly show that loans that are charged-off, loans with past due payments and defaulted loans have in average higher interest rates than loans that are completed. The highest interest rates are asscociated with loans that are charged-off and with loans that have past due payments
+
 ```{python}
 #plotting LoanOriginalAmount (Original Loan Amount) with a violinplot and a boxplot against LoanStatus 
 plt.figure(figsize = [25, 18])
@@ -522,6 +529,8 @@ plt.xticks(rotation=45)
 plt.xlabel('Status of the Loan')
 plt.ylabel('Original Loan Amount');
 ```
+
+#### It seems that the original loan amount doesnt have an impact with the final status of the loan: the original loan amount is about the same in average for loans that are completed, charged-off or defaulted. However, loans with past due payments have in average an higher orginal loan amount
 
 ```{python}
 #plotting OpenCreditLines (Open Credit Lines) with a violinplot and a boxplot against LoanStatus 
@@ -540,6 +549,8 @@ plt.xlabel('Status of the Loan')
 plt.ylabel('Open Credit Lines');
 ```
 
+#### The amout of open credit lines doesnt have to have an impact on the outcome of a loan
+
 ```{python}
 #plotting TotalProsperPaymentsBilled (On time Payments) with a violinplot and a boxplot against LoanStatus 
 plt.figure(figsize = [25, 18])
@@ -556,6 +567,9 @@ plt.xticks(rotation=45)
 plt.xlabel('Status of the Loan')
 plt.ylabel('On time Payments');
 ```
+
+#### The plots show that the status of the loan is associated with the number of on time payments: completet loans have in average the highest number of on time paymnets while loans with the status charged-off and defaulted have the lowest
+
 
 #boxplotting all numeric variabels against LoanStatus 
 plt.figure(figsize = [25, 50])
@@ -653,6 +667,8 @@ plt.xlabel('Status of the Loan')
 ax.set_ylabel("Sequential");
 ```
 
+#### The length of the loan seem not to have an impact on the outcome of the loan: no matter what status a loan has, the most common length is 36 month and least common is 60 month.
+
 ```{python}
 #plotting EmploymentStatus (Status of Employment) against LoanStatus with help of a heat map
 plt.figure(figsize = [20,10])
@@ -663,15 +679,19 @@ plt.xlabel('Status of the Loan');
 
 ```
 
+#### The status of the employment of the borrower seem not to have an impact on the outcome of the loan.
+
 ```{python}
 #plotting Income Range against LoanStatus with help of a heat map
-color = sb.color_palette()[0]
+
 plt.figure(figsize = [20,10])
-sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'IncomeRange', color = color, order = loan_data_clean['LoanStatus'].value_counts().index)
+sb.countplot(data = loan_data_clean, x = 'LoanStatus', hue = 'IncomeRange', order = loan_data_clean['LoanStatus'].value_counts().index)
 plt.legend(loc = 1, ncol = 8, title = 'Income Range')
 plt.xticks(rotation = 25)
 plt.xlabel('Status of the Loan');
 ```
+
+#### The Income Range of the borrower seem not to have an impact on the outcome of the loan.
 
 ```{python}
 #plotting ProsperScore against LoanStatus with help of a heat map
@@ -692,24 +712,23 @@ plt.xlabel('Status of the Loan')
 plt.ylabel('Prosper Score');
 ```
 
-### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+#### The Prosper Score seem to affect the outcome of the loan: so have the most borrower an Prosper Score of 8 when a loan is completed, while most borrower with defaulted and charged-off loans have an Prosper Score of 6.  Furthermore, the most comon Prosper Score for borrowers with loans that have past due payments is 4.
 
-> Your answer here!
 
-### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+### Observed relationships between the variables of interest and the status of loan
 
-> Your answer here!
+- relationship between the monthly payments and the negative outcome of the loan for Prosper: loans that are charged-   off, loans with past due payments and defaulted loans have in average higher monthly payments
+- loans that are charged-off, loans with past due payments and defaulted loans have in average higher interest rates   than loans that are completed
+- the highest interest rates are asscociated with loans that are charged-off and with loans that have past due payments
+- original loan amount does not have an impact with the final status of the loan: the original loan amount is about the same in average for loans that are completed, charged-off or defaulted. However, loans with past due payments have in average an higher orginal loan amount
+- The Prosper Score seem to affect the outcome of the loan: so have the most borrower an Prosper Score of 8 when a loan is completed, while most borrower with defaulted and charged-off loans have an Prosper Score of 6.  Furthermore, the most comon Prosper Score for borrowers with loans that have past due payments is 4.
 
 
 ## Multivariate Exploration
 
-> Create plots of three or more variables to investigate your data even
-further. Make sure that your investigations are justified, and follow from
-your work in the previous sections.
 
-```{python}
+#### I would like to further investigate the relationship between the stauts/outcome of a loan and the Prosper Score in relation to the interest rate, On time Payments and Monthly Loan Payments since they seem to have an impact on the outcome of a loan.
 
-```
 
 ### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
 
@@ -751,4 +770,44 @@ loan_data_clean.StatedMonthlyIncome.value_counts().head(20)
 
 ```{python}
 loan_data_clean.MonthlyLoanPayment.value_counts().head(20)
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
 ```
