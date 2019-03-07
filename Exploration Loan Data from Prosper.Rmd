@@ -657,12 +657,15 @@ g.axes[1,0].set_xlabel('Monthly Loan Payments')
 g.axes[1,1].set_xlabel('Interest Rate')
 g.axes[0,0].set_ylabel('Status of the Loan')
 g.axes[1,0].set_ylabel('Prosper Score')
-#g.fig.suptitle("relationship between the status of the loan & Prosper Score in relation to the interest rate, On time Payments")
 ```
 
 #### The figure shows that the interest rate is as well correlated to the Prosper Score as to the Status of the loan: the higher the Prosper Score, the lower the interest rate, the lower the risk for Prosper that the loan will be defaulted, charged-off or has past due payments. So, borrower with a low Prosper Score get a lower interest rate due to the lower risk that the loan will be defaulted .
 #### On the contrary, borrower with a high Prosper Rates have higher monthly payments but higher payments are more common in loas that are defaulted, charged-off or that have past due payments. This inconsistency might be explanable by the fact that people with higher Prosper Score have higher income and therefore higher monthly payments. While borrower with low income and high monthly payments are more likley to miss a payment or default the loan.
 
+```{python}
+# now I will save the data set as loan_data_master
+loan_data_clean.to_csv('loan_data_master.csv')
+```
 
 > At the end of your report, make sure that you export the notebook as an
 html file from the `File > Download as... > HTML` menu. Make sure you keep
