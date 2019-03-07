@@ -669,30 +669,3 @@ html file from the `File > Download as... > HTML` menu. Make sure you keep
 track of where the exported file goes, so you can put it in the same folder
 as this notebook for project submission. Also, make sure you remove all of
 the quote-formatted guide notes like this one before you finish your report!
-
-
-### Engineering a new variable
-
-```{python}
-print(loan_data_clean.StatedMonthlyIncome.head())
-print(loan_data_clean.MonthlyLoanPayment.head())
-```
-
-```{python}
-# in the first step I create a new variable ratio_income_loanPayment
-loan_data_clean['ratio_income_loanPayment'] = (loan_data_clean.MonthlyLoanPayment / loan_data_clean.StatedMonthlyIncome)*100
-# round the ratio to 2 decimals
-loan_data_clean['ratio_income_loanPayment'] = loan_data_clean['ratio_income_loanPayment'].round(2)
-print(loan_data_clean['ratio_income_loanPayment'].sample(3))
-print(loan_data_clean['ratio_income_loanPayment'].describe())
-```
-
-One can see from the statisitcs that there are null values and values generate by dividing by zero
-
-```{python}
-loan_data_clean.StatedMonthlyIncome.value_counts().head(20)
-```
-
-```{python}
-loan_data_clean.MonthlyLoanPayment.value_counts().head(20)
-```
