@@ -123,22 +123,10 @@ I'll start by looking at the distribution of the main variable of interest
 
 
 Source for all interpretations:
+
 https://www.dummies.com/education/math/statistics/statistics-workbook-for-dummies-cheat-sheet/
 
 Diamonds Data Exploration- Example Project
-
-
-> In this section, investigate distributions of individual variables. If
-you see unusual points or outliers, take a deeper look to clean things up
-and prepare yourself to look at relationships between variables.
-
-
-
-
-
-> Make sure that, after every plot or related series of plots, that you
-include a Markdown cell with comments about what you observed, and what
-you plan on investigating next.
 
 ```{python}
 # getting a first overview over the variable LoanStatus
