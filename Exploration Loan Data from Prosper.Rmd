@@ -666,9 +666,3 @@ g.axes[1,0].set_ylabel('Prosper Score')
 # now I will save the data set as loan_data_master
 loan_data_clean.to_csv('loan_data_master.csv')
 ```
-
-> At the end of your report, make sure that you export the notebook as an
-html file from the `File > Download as... > HTML` menu. Make sure you keep
-track of where the exported file goes, so you can put it in the same folder
-as this notebook for project submission. Also, make sure you remove all of
-the quote-formatted guide notes like this one before you finish your report!

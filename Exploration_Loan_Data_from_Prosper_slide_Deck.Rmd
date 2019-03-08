@@ -47,14 +47,19 @@ warnings.simplefilter("ignore")
 ```
 
 ```{python slideshow={'slide_type': 'skip'}}
-# load in the dataset
+# load in the dataset & chaning the datatypes
 loan_data_clean = pd.read_csv('loan_data_master.csv')
-loan_data_clean.head()
+loan_data_clean['ProsperScore'] = loan_data_clean['ProsperScore'].astype('category')
+loan_data_clean['Term'] = loan_data_clean['Term'].astype('category')
+loan_data_clean['IncomeRange'] = loan_data_clean['IncomeRange'].astype('category')
+loan_data_clean['EmploymentStatus'] = loan_data_clean['EmploymentStatus'].astype('category')
+loan_data_clean['LoanStatus'] = loan_data_clean['LoanStatus'].astype('category')
+
 ```
 
 ## Prosper Score and Loan Status
 
-The Prosper Score seems to affect the outcome of the loan: the most borrower have an Prosper Score of 8 when a loan is completed, while most borrower with defaulted and charged-off loans have an Prosper Score of 6. Furthermore, the most comon Prosper Score for borrowers with loans that have past due payments is 4
+The Prosper Score seems to affect the outcome of the loan: most borrower have an Prosper Score of 8 when a loan is completed, while most borrower with defaulted and charged-off loans have an Prosper Score of 6. Furthermore, the most common Prosper Score for borrowers with loans that have past due payments is 4
 
 ```{python slideshow={'slide_type': 'subslide'}}
 
@@ -80,6 +85,7 @@ Loans that are charged-off, loans with past due payments and defaulted loans hav
 #plotting BorrowerRate (interest rate) with a violinplot and a boxplot against LoanStatus 
 plt.figure(figsize = [25, 18])
 
+base_color = sb.color_palette()[0]
 plt.subplot(2, 2, 1)
 sb.boxplot(data = loan_data_clean, x = 'LoanStatus', y = 'BorrowerRate', color = base_color, order = loan_data_clean['LoanStatus'].value_counts().index)
 plt.xticks(rotation=45)
@@ -89,34 +95,21 @@ plt.title('Relationship Interest Rate and Loan Status');
 
 ```
 
-## Prosper Score and Loan Status in relation to the interest rate
+## Prosper Score and Loan Status in relation to the Interest Rate
 
 The interest rate is as well correlated to the Prosper Score as to the Status of the loan: the higher the Prosper Score, the lower the interest rate, the lower the risk for Prosper that the loan will be defaulted, charged-off or has past due payments
 
 ```{python slideshow={'slide_type': 'subslide'}}
 g = sb.PairGrid(data = loan_data_clean, x_vars = ['MonthlyLoanPayment', 'BorrowerRate'],
-                y_vars = ['LoanStatus','ProsperScore'], height = 5, aspect = 1)
+                y_vars = ['LoanStatus','ProsperScore'], height = 4.5, aspect = 1)
 g.map(sb.violinplot)
 g.axes[1,0].set_xlabel('Monthly Loan Payments')
 g.axes[1,1].set_xlabel('Interest Rate')
 g.axes[0,0].set_ylabel('Status of the Loan')
 g.axes[1,0].set_ylabel('Prosper Score')
 
-
-```
-
-> Once you're ready to finish your presentation, check your output by using
-nbconvert to export the notebook and set up a server for the slides. From the
-terminal or command line, use the following expression:
-> > `jupyter nbconvert <file_name>.ipynb --to slides --post serve --template output_toggle`
-
-> This should open a tab in your web browser where you can scroll through your
-presentation. Sub-slides can be accessed by pressing 'down' when viewing its parent
-slide. Make sure you remove all of the quote-formatted guide notes like this one
-before you finish your presentation!
-
-```{python slideshow={'slide_type': 'subslide'}}
-jupyter nbconvert Exploration Loan Data from Prosper_slide_Deck.ipynb --to slides --post serve --template output_toggle
+plt.subplots_adjust(top=0.95)
+g.fig.suptitle('Prosper Score and Loan Status in relation to the Interest Rate');
 ```
 
 ```{python}
